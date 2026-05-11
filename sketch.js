@@ -128,23 +128,13 @@ function draw() {
     let earringSize = faceSize * 0.4;
     let offsetY = faceSize * 0.05;
 
-    // --- 臉部側轉偵測邏輯 ---
-    // 使用鼻尖 (kp 4) 與臉部左右兩側邊界 (kp 234, 454) 的距離比例
-    let nose = face.keypoints[4];
-    let leftEdge = face.keypoints[234];
-    let rightEdge = face.keypoints[454];
-    let dLeft = dist(nose.x, nose.y, leftEdge.x, leftEdge.y);
-    let dRight = dist(nose.x, nose.y, rightEdge.x, rightEdge.y);
-    let turnRatio = dLeft / dRight;
-
-    // 如果比例接近 1.0 (代表正面)，則顯示面具
-    if (turnRatio >= 0.8 && turnRatio <= 1.25) {
-      if (maskImg && maskImg.width > 1) {
-        let faceCenterX = map(face.keypoints[1].x, 0, capture.width, -dW / 2, dW / 2);
-        let faceCenterY = map(face.keypoints[1].y, 0, capture.height, -dH / 2, dH / 2);
-        // 面具大小設定為臉部寬度的 2.5 倍，使其更大地覆蓋全臉
-        image(maskImg, faceCenterX, faceCenterY, faceSize * 2.5, faceSize * 2.5);
-      }
+    // 只要偵測到臉部就顯示面具
+    if (maskImg && maskImg.width > 1) {
+      // 使用關鍵點索引 1 (鼻樑中心) 定位面具
+      let faceCenterX = map(face.keypoints[1].x, 0, capture.width, -dW / 2, dW / 2);
+      let faceCenterY = map(face.keypoints[1].y, 0, capture.height, -dH / 2, dH / 2);
+      // 繪製面具，大小隨臉部遠近自動縮放
+      image(maskImg, faceCenterX, faceCenterY, faceSize * 2.5, faceSize * 2.5);
     }
 
     let earPoints = [p1, p2];
