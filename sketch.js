@@ -70,9 +70,12 @@ function draw() {
       fingersUp++;
     }
 
-    // 根據手指數量 (1-5) 切換對應的耳環圖片
+    // 根據手指數量切換圖片或隱藏
     if (fingersUp >= 1 && fingersUp <= 5) {
       currentEarring = earringImages[fingersUp - 1];
+    } else if (fingersUp === 0) {
+      // 偵測到握拳 (0 隻手指)，將 currentEarring 設為 null 代表隱藏
+      currentEarring = null;
     }
   }
 
@@ -92,27 +95,39 @@ function draw() {
   if (capture && capture.width > 0 && faces.length > 0) {
     let face = faces[0];
     
-    // FaceMesh 關鍵點索引：132 與 361 通常對應於左右耳垂附近的位置
-    let earPoints = [face.keypoints[132], face.keypoints[361]];
+    // 取得左右耳垂點
+    let p1 = face.keypoints[132];
+    let p2 = face.keypoints[361];
 
+    // 將座標映射到畫布空間，用以計算兩耳之間的顯示距離
+    let x1 = map(p1.x, 0, capture.width, -dW / 2, dW / 2);
+    let y1 = map(p1.y, 0, capture.height, -dH / 2, dH / 2);
+    let x2 = map(p2.x, 0, capture.width, -dW / 2, dW / 2);
+    let y2 = map(p2.y, 0, capture.height, -dH / 2, dH / 2);
+    
+    // 計算臉部寬度（兩耳距離）作為縮放基準
+    let faceSize = dist(x1, y1, x2, y2);
+    // 動態計算耳環大小（約為臉寬的 20%）與下墜偏移量（約為臉寬的 5%）
+    let earringSize = faceSize * 0.2;
+    let offsetY = faceSize * 0.05;
+
+    let earPoints = [p1, p2];
     earPoints.forEach(pt => {
       if (pt) {
-        // 將攝影機原始座標 (640x480) 映射到畫布上縮放後的顯示區域 (-dW/2 到 dW/2)
         let x = map(pt.x, 0, capture.width, -dW / 2, dW / 2);
         let y = map(pt.y, 0, capture.height, -dH / 2, dH / 2);
         
-        // 稍微增加一點 Y 軸偏移 (dH * 0.03)，讓耳環看起來是掛在耳垂下方而非正中心
-        let offsetY = dH * 0.03;
-
-        // 檢查是否有手勢產生的耳環圖片
-        if (currentEarring && currentEarring.width > 1) {
-          // 繪製手勢對應的耳環
-          image(currentEarring, x, y + offsetY, dW * 0.1, dW * 0.1);
-        } else {
-          // 備案：如果圖片載入失敗，顯示黃色圓圈，方便確認辨識位置
-          fill(255, 255, 0);
-          noStroke();
-          circle(x, y + offsetY, 15);
+        // 只有在 currentEarring 不為 null 時才繪製 (null 代表握拳隱藏)
+        if (currentEarring !== null) {
+          if (currentEarring && currentEarring.width > 1) {
+            // 繪製隨臉部遠近縮放的耳環
+            image(currentEarring, x, y + offsetY, earringSize, earringSize);
+          } else {
+            // 備案：如果尚未偵測到手勢 (undefined) 或圖片載入失敗，顯示黃色圓圈
+            fill(255, 255, 0);
+            noStroke();
+            circle(x, y + offsetY, earringSize * 0.3); 
+          }
         }
       }
     });
