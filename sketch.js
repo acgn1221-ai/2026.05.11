@@ -11,16 +11,24 @@ function preload() {
   faceMesh = ml5.faceMesh();
   handPose = ml5.handPose();
 
-  // 載入手勢 1-5 對應的耳環圖片 (檔案需放置於 pic 目錄下)
+  // 載入手勢 1-5 對應的耳環圖片 (1.png, 2.png, 3.png, 4.png, 5.png)
   for (let i = 1; i <= 5; i++) {
-    earringImages.push(loadImage(`pic/acc${i}_ring.png`));
+    earringImages.push(loadImage(`images/${i}.png`, 
+      () => console.log(`圖片 images/${i}.png 載入成功`),
+      (err) => console.warn(`無法載入 images/${i}.png`)));
   }
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   // 取得攝影機影像
-  capture = createCapture(VIDEO);
+  capture = createCapture(VIDEO, (stream) => {
+    console.log("攝影機已啟動");
+  }, (err) => {
+    console.error("攝影機啟動失敗: ", err);
+    alert("找不到攝影機！請檢查設備連接或權限設定設定。");
+  });
+  
   capture.size(640, 480); // 設定影像解析度以利計算
   // 隱藏原始的 HTML 影片元件，只在畫布上繪製
   capture.hide();
