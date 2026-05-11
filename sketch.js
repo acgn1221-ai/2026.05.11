@@ -7,7 +7,10 @@ function preload() {
   // 載入 ml5.js 的 faceMesh 模型
   faceMesh = ml5.faceMesh();
   // 載入耳環圖片
-  earringImg = loadImage('pic/1.png');
+  earringImg = loadImage('pic/1.png', 
+    () => console.log("耳環圖片載入成功"), 
+    (err) => console.error("無法載入圖片 'pic/1.png'，請檢查路徑與伺服器設定", err)
+  );
 }
 
 function setup() {
