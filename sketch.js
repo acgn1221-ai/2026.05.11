@@ -40,8 +40,11 @@ function setup() {
   capture.hide();
 
   // 開始持續偵測臉部與手勢
-  faceMesh.detectStart(capture, gotFaces);
-  handPose.detectStart(capture, gotHands);
+  // 檢查 capture 是否成功初始化
+  if (capture) {
+    faceMesh.detectStart(capture, gotFaces);
+    handPose.detectStart(capture, gotHands);
+  }
 }
 
 function gotFaces(results) {
@@ -122,7 +125,7 @@ function draw() {
     // 計算臉部寬度（兩耳距離）作為縮放基準
     let faceSize = dist(x1, y1, x2, y2);
     // 動態計算耳環大小（約為臉寬的 20%）與下墜偏移量（約為臉寬的 5%）
-    let earringSize = faceSize * 0.2;
+    let earringSize = faceSize * 0.4;
     let offsetY = faceSize * 0.05;
 
     // --- 臉部側轉偵測邏輯 ---
@@ -134,13 +137,13 @@ function draw() {
     let dRight = dist(nose.x, nose.y, rightEdge.x, rightEdge.y);
     let turnRatio = dLeft / dRight;
 
-    // 如果比例偏離中心 (代表側轉)，則顯示面具
-    if (turnRatio < 0.6 || turnRatio > 1.7) {
+    // 如果比例接近 1.0 (代表正面)，則顯示面具
+    if (turnRatio >= 0.8 && turnRatio <= 1.25) {
       if (maskImg && maskImg.width > 1) {
         let faceCenterX = map(face.keypoints[1].x, 0, capture.width, -dW / 2, dW / 2);
         let faceCenterY = map(face.keypoints[1].y, 0, capture.height, -dH / 2, dH / 2);
-        // 面具大小設定為臉部寬度的 1.5 倍，使其覆蓋全臉
-        image(maskImg, faceCenterX, faceCenterY, faceSize * 1.5, faceSize * 1.5);
+        // 面具大小設定為臉部寬度的 2.5 倍，使其更大地覆蓋全臉
+        image(maskImg, faceCenterX, faceCenterY, faceSize * 2.5, faceSize * 2.5);
       }
     }
 
