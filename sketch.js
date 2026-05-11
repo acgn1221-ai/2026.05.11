@@ -55,6 +55,14 @@ function gotHands(results) {
 function draw() {
   background('#e7c6ff');
 
+  // 在畫面最上方中央顯示學號與姓名
+  push();
+  fill(0);             // 設定文字顏色為黑色
+  textSize(32);        // 設定字體大小
+  textAlign(CENTER, TOP); // 文字水平置中，對齊頂部
+  text('414730506 張怡婕', width / 2, 20);
+  pop();
+
   // 手勢辨識計數邏輯
   if (hands.length > 0) {
     let hand = hands[0];
