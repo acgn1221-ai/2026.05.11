@@ -11,7 +11,7 @@ function preload() {
   faceMesh = ml5.faceMesh();
   handPose = ml5.handPose();
 
-  // 載入手勢 1-5 對應的耳環圖片 (1.png, 2.png, 3.png, 4.png, 5.png)
+  // 載入 images 目錄下的 1.png 到 5.png
   for (let i = 1; i <= 5; i++) {
     earringImages.push(loadImage(`images/${i}.png`, 
       () => console.log(`圖片 images/${i}.png 載入成功`),
@@ -89,7 +89,7 @@ function draw() {
   image(capture, 0, 0, dW, dH);
 
   // 如果偵測到臉部，且影像寬度已載入
-  if (capture.width > 0 && faces.length > 0) {
+  if (capture && capture.width > 0 && faces.length > 0) {
     let face = faces[0];
     
     // FaceMesh 關鍵點索引：132 與 361 通常對應於左右耳垂附近的位置
