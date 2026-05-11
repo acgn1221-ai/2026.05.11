@@ -1,10 +1,13 @@
 let capture;
 let faceMesh;
 let faces = [];
+let earringImg;
 
 function preload() {
   // 載入 ml5.js 的 faceMesh 模型
   faceMesh = ml5.faceMesh();
+  // 載入耳環圖片
+  earringImg = loadImage('pic/1.png');
 }
 
 function setup() {
@@ -45,15 +48,15 @@ function draw() {
     // FaceMesh 關鍵點索引：132 與 361 通常對應於左右耳垂附近的位置
     let earPoints = [face.keypoints[132], face.keypoints[361]];
 
-    fill(255, 255, 0); // 黃色
-    noStroke();
-
     earPoints.forEach(pt => {
       if (pt) {
         // 將攝影機原始座標 (640x480) 映射到畫布上縮放後的顯示區域 (-dW/2 到 dW/2)
         let x = map(pt.x, 0, capture.width, -dW / 2, dW / 2);
         let y = map(pt.y, 0, capture.height, -dH / 2, dH / 2);
-        circle(x, y, 15);
+        
+        // 在耳垂位置繪製耳環圖片，並稍微調整大小
+        // 這裡設定寬高為顯示區域寬度的 10%，可根據需求調整
+        image(earringImg, x, y, dW * 0.1, dW * 0.1);
       }
     });
   }
