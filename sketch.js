@@ -1,16 +1,20 @@
 let capture;
 let faceMesh;
+let handPose;
 let faces = [];
-let earringImg;
+let hands = [];
+let earringImages = [];
+let currentEarring;
 
 function preload() {
-  // 載入 ml5.js 的 faceMesh 模型
+  // 載入 ml5.js 模型
   faceMesh = ml5.faceMesh();
-  // 載入耳環圖片
-  earringImg = loadImage('pic/1.png', 
-    () => console.log("耳環圖片載入成功"), 
-    (err) => console.error("無法載入圖片 'pic/1.png'，請檢查路徑與伺服器設定", err)
-  );
+  handPose = ml5.handPose();
+
+  // 載入手勢 1-5 對應的耳環圖片 (檔案需放置於 pic 目錄下)
+  for (let i = 1; i <= 5; i++) {
+    earringImages.push(loadImage(`pic/acc${i}_ring.png`));
+  }
 }
 
 function setup() {
@@ -21,16 +25,48 @@ function setup() {
   // 隱藏原始的 HTML 影片元件，只在畫布上繪製
   capture.hide();
 
-  // 開始持續偵測臉部
+  // 開始持續偵測臉部與手勢
   faceMesh.detectStart(capture, gotFaces);
+  handPose.detectStart(capture, gotHands);
 }
 
 function gotFaces(results) {
   faces = results;
 }
 
+function gotHands(results) {
+  hands = results;
+}
+
 function draw() {
   background('#e7c6ff');
+
+  // 手勢辨識計數邏輯
+  if (hands.length > 0) {
+    let hand = hands[0];
+    let fingersUp = 0;
+
+    // 檢測四指 (食指、中指、無名指、小指)
+    // 若指尖 (tip) 的 Y 座標小於中間關節 (pip) 的 Y 座標，視為伸出
+    if (hand.keypoints[8].y < hand.keypoints[6].y) fingersUp++;
+    if (hand.keypoints[12].y < hand.keypoints[10].y) fingersUp++;
+    if (hand.keypoints[16].y < hand.keypoints[14].y) fingersUp++;
+    if (hand.keypoints[20].y < hand.keypoints[18].y) fingersUp++;
+
+    // 大拇指檢測：判斷指尖與小指根部的距離是否大於關節到小指根部的距離
+    let thumbTip = hand.keypoints[4];
+    let thumbJoint = hand.keypoints[2];
+    let pinkyBase = hand.keypoints[17];
+    if (dist(thumbTip.x, thumbTip.y, pinkyBase.x, pinkyBase.y) > 
+        dist(thumbJoint.x, thumbJoint.y, pinkyBase.x, pinkyBase.y)) {
+      fingersUp++;
+    }
+
+    // 根據手指數量 (1-5) 切換對應的耳環圖片
+    if (fingersUp >= 1 && fingersUp <= 5) {
+      currentEarring = earringImages[fingersUp - 1];
+    }
+  }
 
   let dW = width * 0.5;
   let dH = height * 0.5;
@@ -60,10 +96,10 @@ function draw() {
         // 稍微增加一點 Y 軸偏移 (dH * 0.03)，讓耳環看起來是掛在耳垂下方而非正中心
         let offsetY = dH * 0.03;
 
-        // 檢查圖片是否載入成功 (若載入失敗 width 通常為 1)
-        if (earringImg.width > 1) {
-          // 在耳垂位置繪製耳環圖片，寬高為顯示區域寬度的 10%
-          image(earringImg, x, y + offsetY, dW * 0.1, dW * 0.1);
+        // 檢查是否有手勢產生的耳環圖片
+        if (currentEarring && currentEarring.width > 1) {
+          // 繪製手勢對應的耳環
+          image(currentEarring, x, y + offsetY, dW * 0.1, dW * 0.1);
         } else {
           // 備案：如果圖片載入失敗，顯示黃色圓圈，方便確認辨識位置
           fill(255, 255, 0);
