@@ -54,15 +54,18 @@ function draw() {
         let x = map(pt.x, 0, capture.width, -dW / 2, dW / 2);
         let y = map(pt.y, 0, capture.height, -dH / 2, dH / 2);
         
+        // 稍微增加一點 Y 軸偏移 (dH * 0.03)，讓耳環看起來是掛在耳垂下方而非正中心
+        let offsetY = dH * 0.03;
+
         // 檢查圖片是否載入成功 (若載入失敗 width 通常為 1)
         if (earringImg.width > 1) {
           // 在耳垂位置繪製耳環圖片，寬高為顯示區域寬度的 10%
-          image(earringImg, x, y, dW * 0.1, dW * 0.1);
+          image(earringImg, x, y + offsetY, dW * 0.1, dW * 0.1);
         } else {
           // 備案：如果圖片載入失敗，顯示黃色圓圈，方便確認辨識位置
           fill(255, 255, 0);
           noStroke();
-          circle(x, y, 15);
+          circle(x, y + offsetY, 15);
         }
       }
     });
