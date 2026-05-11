@@ -4,6 +4,7 @@ let handPose;
 let faces = [];
 let hands = [];
 let earringImages = [];
+let maskImg;
 let currentEarring;
 
 function preload() {
@@ -17,6 +18,11 @@ function preload() {
       () => console.log(`圖片 images/${i}.png 載入成功`),
       (err) => console.warn(`無法載入 images/${i}.png`)));
   }
+
+  // 載入面具圖片 (檔案需放置於 face 目錄下)
+  maskImg = loadImage('face/f1.png', 
+    () => console.log("面具圖片載入成功"), 
+    (err) => console.warn("找不到 face/f1.png，請確認目錄與檔名"));
 }
 
 function setup() {
@@ -110,6 +116,25 @@ function draw() {
     // 動態計算耳環大小（約為臉寬的 20%）與下墜偏移量（約為臉寬的 5%）
     let earringSize = faceSize * 0.2;
     let offsetY = faceSize * 0.05;
+
+    // --- 臉部側轉偵測邏輯 ---
+    // 使用鼻尖 (kp 4) 與臉部左右兩側邊界 (kp 234, 454) 的距離比例
+    let nose = face.keypoints[4];
+    let leftEdge = face.keypoints[234];
+    let rightEdge = face.keypoints[454];
+    let dLeft = dist(nose.x, nose.y, leftEdge.x, leftEdge.y);
+    let dRight = dist(nose.x, nose.y, rightEdge.x, rightEdge.y);
+    let turnRatio = dLeft / dRight;
+
+    // 如果比例偏離中心 (代表側轉)，則顯示面具
+    if (turnRatio < 0.6 || turnRatio > 1.7) {
+      if (maskImg && maskImg.width > 1) {
+        let faceCenterX = map(face.keypoints[1].x, 0, capture.width, -dW / 2, dW / 2);
+        let faceCenterY = map(face.keypoints[1].y, 0, capture.height, -dH / 2, dH / 2);
+        // 面具大小設定為臉部寬度的 1.5 倍，使其覆蓋全臉
+        image(maskImg, faceCenterX, faceCenterY, faceSize * 1.5, faceSize * 1.5);
+      }
+    }
 
     let earPoints = [p1, p2];
     earPoints.forEach(pt => {
